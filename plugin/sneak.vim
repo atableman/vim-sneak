@@ -2,6 +2,7 @@
 " Author:       Justin M. Keyes
 " Version:      1.8
 " License:      MIT
+"silent! :unlet g:loaded_sneak_plugin
 
 if exists('g:loaded_sneak_plugin') || &compatible || v:version < 700
   finish
@@ -206,17 +207,17 @@ func! sneak#to(op, input, inputlen, count, repeatmotion, reverse, inclusive, lab
   let curln_pattern  = l:match_bounds.'\%'.curlin.'l\%'.l:gt_lt.curcol.'v'
 
   "highlight the vertical 'tunnel' that the search is scoped-to
-  if max(bounds) "perform the scoped highlight...
-    let w:sneak_sc_hl = matchadd('SneakScope', l:scope_pattern)
-  endif
+  "if max(bounds) "perform the scoped highlight...
+  ""  let w:sneak_sc_hl = matchadd('SneakScope', l:scope_pattern)
+  "endif
 
   call s:attach_autocmds()
 
   "highlight actual matches at or below the cursor position
   "  - store in w: because matchadd() highlight is per-window.
-  let w:sneak_hl_id = matchadd('Sneak',
-        \ (s.prefix).(s.match_pattern).(s.search).'\|'.curln_pattern.(s.search))
-
+  "let w:sneak_hl_id = matchadd('Sneak',
+  ""      \ (s.prefix).(s.match_pattern).(s.search).'\|'.curln_pattern.(s.search))
+  
   "Let user deactivate with <esc>
   if (has('nvim') || has('gui_running')) && maparg('<esc>', 'n') ==# ""
     nmap <expr> <silent> <esc> sneak#cancel() . "\<esc>"

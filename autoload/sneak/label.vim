@@ -8,9 +8,12 @@
 let g:sneak#target_labels = get(g:, 'sneak#target_labels', ";sftunq/SFGHLTUNRMQZ?0")
 
 let s:clear_syntax = !has('patch-7.4.792')
+"let s:clear_syntax = 1
 let s:matchmap = {}
 let s:match_ids = []
 let s:orig_conceal_matches = []
+
+let s:vscode_lines  = {}
 
 if exists('*strcharpart')
   func! s:strchar(s, i) abort
@@ -24,13 +27,28 @@ endif
 
 func! s:placematch(c, pos) abort
   let s:matchmap[a:c] = a:pos
-  let pat = '\%'.a:pos[0].'l\%'.a:pos[1].'c.'
+  let pat = '\%'.a:pos[0].'l\%'.a:pos[1].'c..'
   if s:clear_syntax
     exec "syntax match SneakLabel '".pat."' conceal cchar=".a:c
   else
+  echom pat
     let id = matchadd('Conceal', pat, 999, -1, { 'conceal': a:c })
-    call add(s:match_ids, id)
+    "let id = matchadd('Conceal', pat, 999, -1, { 'conceal': "Z"})
+    "call add(s:match_ids, id)
   endif
+
+  let vstemp = get(s:vscode_lines, a:pos[0], [] )
+  "echom vstemp
+  "if has_key(s:vscode_lines, a:pos[0])
+  ""  add(s:vscode_line[a:pos[0]], [a:pos[1],a:c])
+  "else
+  ""  s:vscode_line[a:pos[0]] = []
+  ""  add(s:vscode_line[a:pos[0]], [a:pos[1],a:c])
+  "endif
+  call add(vstemp,  [a:pos[1],a:c] )
+  "echom vstemp
+  let s:vscode_lines[a:pos[0]]=vstemp
+
 endf
 
 func! s:save_conceal_matches() abort
@@ -69,6 +87,7 @@ endf
 
 func! s:do_label(s, v, reverse, label) abort "{{{
   let w = winsaveview()
+  let s:vscode_lines = {}
   call s:before()
   let search_pattern = (a:s.prefix).(a:s.search).(a:s.get_onscreen_searchpattern(w))
 
@@ -96,7 +115,13 @@ func! s:do_label(s, v, reverse, label) abort "{{{
     let i += 1
   endwhile
 
-  call winrestview(w) | redraw
+  let s:vscode_lines_items = items(s:vscode_lines)
+  "echom s:vscode_lines
+  "echom s:vscode_lines_items
+  call VSCodeSetTextDecorations('Sneak', s:vscode_lines_items )
+
+  "call winrestview(w) | redraw
+  redraw
   let choice = empty(a:label) ? sneak#util#getchar() : a:label
   call s:after()
 
@@ -126,12 +151,17 @@ endf "}}}
 func! s:after() abort
   autocmd! sneak_label_cleanup
   try | call matchdelete(s:sneak_cursor_hl) | catch | endtry
-  call map(s:match_ids, 'matchdelete(v:val)')
+  "call map(s:match_ids, 'matchdelete(v:val)')
   let s:match_ids = []
   "remove temporary highlight links
-  exec 'hi! link Conceal '.s:orig_hl_conceal
-  call s:restore_conceal_matches()
-  exec 'hi! link Sneak '.s:orig_hl_sneak
+
+  call VSCodeSetTextDecorations('Sneak', [])
+
+
+  " NO_OUTPUT
+  "exec 'hi! link Conceal '.s:orig_hl_conceal
+  "call s:restore_conceal_matches()
+  "exec 'hi! link Sneak '.s:orig_hl_sneak
 
   if s:clear_syntax
     let &l:synmaxcol=s:o_synmaxcol
@@ -174,7 +204,8 @@ func! s:before() abort
   setlocal concealcursor=ncv conceallevel=2
 
   " Highlight the cursor location (because cursor is hidden during getchar()).
-  let s:sneak_cursor_hl = matchadd("SneakScope", '\%#', 11, -1)
+  
+  "let s:sneak_cursor_hl = matchadd("SneakScope", '\%#', 11, -1)
 
   if s:clear_syntax
     setlocal nospell
@@ -190,13 +221,15 @@ func! s:before() abort
     call s:disable_conceal_in_other_windows()
   endif
 
-  let s:orig_hl_conceal = sneak#util#links_to('Conceal')
-  call s:save_conceal_matches()
-  let s:orig_hl_sneak   = sneak#util#links_to('Sneak')
+  ":let s:orig_hl_conceal = sneak#util#links_to('Conceal')
+  "call s:save_conceal_matches()
+  "let s:orig_hl_sneak   = sneak#util#links_to('Sneak')
+
+  " NO_OUTPUT ?
   "set temporary link to our custom 'conceal' highlight
-  hi! link Conceal SneakLabel
+  "hi! link Conceal SneakLabel
   "set temporary link to hide the sneak search targets
-  hi! link Sneak SneakLabelMask
+  "hi! link Sneak SneakLabelMask
 
   augroup sneak_label_cleanup
     autocmd!
