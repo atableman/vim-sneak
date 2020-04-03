@@ -122,9 +122,9 @@ func! s:init_hl() abort
   exec "highlight default Sneak guifg=white guibg=magenta ctermfg=white ctermbg=".(&t_Co < 256 ? "magenta" : "201")
 
   if &background ==# 'dark'
-    "highlight default SneakScope guifg=black guibg=white ctermfg=0     ctermbg=255
+    highlight default SneakScope guifg=black guibg=white ctermfg=0     ctermbg=255
   else
-   "" highlight default SneakScope guifg=white guibg=black ctermfg=255   ctermbg=0
+    highlight default SneakScope guifg=white guibg=black ctermfg=255   ctermbg=0
   endif
 
   let guibg   = s:default_color('Sneak', 'bg', 'gui')
@@ -139,9 +139,23 @@ func! s:init_hl() abort
   "exec 'highlight default SneakLabelMask guifg='.guibg.' guibg='.guibg.' ctermfg='.ctermbg.' ctermbg='.ctermbg
 endf
 
+func! sneak#util#move_vs_cursor()
+  " VSCodeCallRangePos
+  let cursor_pos = getpos(".")
+  "echom " cur ". cursor_pos[1]." ".cursor_pos[2]
+  call VSCodeNotifyRangePos( "", cursor_pos[1], cursor_pos[1], cursor_pos[2], cursor_pos[2], 0)
+  "call VSCodeCall('cursorMove', { 'to' : 'right', 'value': 5 } )
+  "call VSCodeCall('cursorMove', { 'to' : 'down'  } )
+  "call VSCodeCall('cursorMove', { 'to': 'up' })
+  "call VSCodeCall('cursorMove', { 'to': 'down' })
+endfunction
+
 augroup sneak_colorscheme  " Re-init on :colorscheme change at runtime. #108
   autocmd!
   autocmd ColorScheme * call <sid>init_hl()
 augroup END
 
 call s:init_hl()
+
+"nnoremap ZZ :call VSCodeCall('cursorMove', { 'to': 'down' })<CR>
+nnoremap z :call sneak#util#move_vs_cursor()<CR>

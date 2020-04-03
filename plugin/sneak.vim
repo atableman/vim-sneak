@@ -111,7 +111,8 @@ func! sneak#to(op, input, inputlen, count, repeatmotion, reverse, inclusive, lab
     if a:op ==# 'c'  " user <esc> during change-operation should return to previous mode.
       call feedkeys((col('.') > 1 && col('.') < col('$') ? "\<RIGHT>" : '') . "\<C-\>\<C-G>", 'n')
     endif
-    redraw | echo '' | return
+    "redraw | echo '' | return
+    redraw | return
   endif
 
   let is_v  = sneak#util#isvisualop(a:op)
@@ -179,7 +180,7 @@ func! sneak#to(op, input, inputlen, count, repeatmotion, reverse, inclusive, lab
       let nudge = !a:inclusive
     endif
   endfor
-
+  
   if nudge && (!is_v || max(matchpos) > 0)
     call sneak#util#nudge(a:reverse) "undo nudge for t
   endif
@@ -190,7 +191,6 @@ func! sneak#to(op, input, inputlen, count, repeatmotion, reverse, inclusive, lab
     return
   endif
   "search succeeded
-
   call sneak#util#removehl()
 
   if (!is_op || a:op ==# 'y') "position _after_ search

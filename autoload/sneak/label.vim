@@ -31,8 +31,8 @@ func! s:placematch(c, pos) abort
   if s:clear_syntax
     exec "syntax match SneakLabel '".pat."' conceal cchar=".a:c
   else
-  echom pat
-    let id = matchadd('Conceal', pat, 999, -1, { 'conceal': a:c })
+  "echom pat
+    "let id = matchadd('Conceal', pat, 999, -1, { 'conceal': a:c })
     "let id = matchadd('Conceal', pat, 999, -1, { 'conceal': "Z"})
     "call add(s:match_ids, id)
   endif
@@ -89,8 +89,11 @@ func! s:do_label(s, v, reverse, label) abort "{{{
   let w = winsaveview()
   let s:vscode_lines = {}
   call s:before()
-  let search_pattern = (a:s.prefix).(a:s.search).(a:s.get_onscreen_searchpattern(w))
 
+  "Seach pattern limits to search til the location of the last label we have strings for.
+  let search_pattern = (a:s.prefix).(a:s.search).(a:s.get_onscreen_searchpattern(w))
+ "echom ";".search_pattern.";".a:s.prefix.";".a:s.search
+"echom "dsfsdf ".s:clear_syntax
   let i = 0
   let overflow = [0, 0] "position of the next match (if any) after we have run out of target labels.
   while 1
@@ -118,10 +121,12 @@ func! s:do_label(s, v, reverse, label) abort "{{{
   let s:vscode_lines_items = items(s:vscode_lines)
   "echom s:vscode_lines
   "echom s:vscode_lines_items
+  call winrestview(w) | redraw
+  
   call VSCodeSetTextDecorations('Sneak', s:vscode_lines_items )
 
-  "call winrestview(w) | redraw
-  redraw
+call sneak#util#move_vs_cursor()
+
   let choice = empty(a:label) ? sneak#util#getchar() : a:label
   call s:after()
 
@@ -150,7 +155,7 @@ endf "}}}
 
 func! s:after() abort
   autocmd! sneak_label_cleanup
-  try | call matchdelete(s:sneak_cursor_hl) | catch | endtry
+  "try | call matchdelete(s:sneak_cursor_hl) | catch | endtry
   "call map(s:match_ids, 'matchdelete(v:val)')
   let s:match_ids = []
   "remove temporary highlight links
@@ -174,7 +179,7 @@ func! s:after() abort
     call s:restore_conceal_in_other_windows()
   endif
 
-  let [&l:concealcursor,&l:conceallevel]=[s:o_cocu,s:o_cole]
+  "let [&l:concealcursor,&l:conceallevel]=[s:o_cocu,s:o_cole]
 endf
 
 func! s:disable_conceal_in_other_windows() abort
@@ -201,10 +206,9 @@ func! s:before() abort
     exe 'let s:o_'.o.'=&l:'.o
   endfor
 
-  setlocal concealcursor=ncv conceallevel=2
+  "setlocal concealcursor=ncv conceallevel=2
 
   " Highlight the cursor location (because cursor is hidden during getchar()).
-  
   "let s:sneak_cursor_hl = matchadd("SneakScope", '\%#', 11, -1)
 
   if s:clear_syntax
